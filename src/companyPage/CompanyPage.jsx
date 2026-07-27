@@ -41,10 +41,10 @@ function CompanyPage(){
             .map(item => ({
                 // Map your API properties (right side) to the chart properties (left side)
                 time: Math.floor(new Date(item.timestamp).getTime() / 1000),
-                open: parseFloat(item.openPrice),
-                high: parseFloat(item.highPrice),
-                low: parseFloat(item.lowPrice),
-                close: parseFloat(item.closePrice)
+                open: parseFloat(item.open),
+                high: parseFloat(item.high),
+                low: parseFloat(item.low),
+                close: parseFloat(item.close)
             }))
             // Filter out rows containing NaN values from incomplete data fields
             .filter(item =>
