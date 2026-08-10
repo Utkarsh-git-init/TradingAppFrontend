@@ -2,10 +2,7 @@ import {useEffect, useState} from "react";
 
 function Homepage() {
     const [companies, setCompanies] = useState([]);
-    const [theme, setTheme] = useState("light");
-    useEffect(() => {
-        document.documentElement.setAttribute("data-theme", theme);
-    }, [theme]);
+
     const baseUrl=import.meta.env.VITE_API_BASE_URL;
     useEffect(() => {
         fetch(baseUrl+"/company",{
@@ -36,32 +33,27 @@ function Homepage() {
 
     return (
         <div>
-            {
-                companies.map((company) => {
-                    const matchedItem=livePrices.find((live) => live?.companyId=== company.id);
-                    return (
-                        <div key={company.id}>
-                            {company.id}---
-                            {company.name}   ---
-                            {company.currentPrice}
-                            ----
-                            {matchedItem?.companyId}
-                            ----
-                            livePrices
-                            ----
-                            {matchedItem?.currentPrice}
-                        </div>
-                    )
-                })
-            }
             <div>
-                <button
-                    onClick={() =>
-                        setTheme(theme === "light" ? "dark" : "light")
-                    }
-                >
-                    Toggle Theme
-                </button>
+                {
+                    companies.map((company) => {
+                        const matchedItem=livePrices.find((live) => live?.companyId=== company.id);
+                        return (
+                            <div key={company.id}>
+                                {company.id}---
+                                {company.name}   ---
+                                {company.fairPrice} ---
+                                {company.sector} ---
+                                {company.volatility} ---
+                                ----
+                                {matchedItem?.companyId}
+                                ----
+                                livePrices
+                                ----
+                                {matchedItem?.currentPrice}
+                            </div>
+                        )
+                    })
+                }
             </div>
         </div>
     )

@@ -1,30 +1,38 @@
-import {useParams} from "react-router-dom";
-import {useEffect, useRef, useState} from "react";
-import {createChart,CandlestickSeries} from "lightweight-charts";
+import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { createChart, CandlestickSeries } from "lightweight-charts";
 
-function CompanyPage(){
-    const {companyId} = useParams()
-    const [candle, setCandle] = useState([])
+function CompanyPage() {
+    const { companyId } = useParams();
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    const [candles, setCandles] = useState([]);
+
     const chartContainerRef = useRef(null);
-    useEffect(()=>{
-        const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        fetch(baseUrl+"/company/price_history/"+companyId,{
-            method: 'GET',
-        }).then(response => response.json())
-        .then((data)=>{
-            console.log(data)
-            setCandle(data)
-        })
-    },[companyId])
+    const chartRef = useRef(null);
+    const seriesRef = useRef(null);
+    const candlesRef = useRef([]);
+
+    // Fetch history
     useEffect(() => {
-        if (!chartContainerRef.current || candle.length === 0) return;
+        fetch(`${baseUrl}/company/price_history/${companyId}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                setCandles(data)
+            });
+    }, [baseUrl, companyId]);
+
+    // Create chart once (with proper cleanup)
+    useEffect(() => {
+        if (!chartContainerRef.current) return;
 
         const chart = createChart(chartContainerRef.current, {
             width: chartContainerRef.current.clientWidth || 800,
             height: 400,
             layout: {
-                background: { color: '#ffffff' },
-                textColor: '#333',
+                background: { color: "#ffffff" },
+                textColor: "#333",
             },
             timeScale: {
                 timeVisible: true,
@@ -32,56 +40,104 @@ function CompanyPage(){
             },
         });
 
-        const candlestickSeries = chart.addSeries(CandlestickSeries, {
-            upColor: '#26a69a',
-            downColor: '#ef5350',
+        const series = chart.addSeries(CandlestickSeries, {
+            upColor: "#26a69a",
+            downColor: "#ef5350",
         });
 
-        const formattedData = candle
-            .map(item => ({
-                // Map your API properties (right side) to the chart properties (left side)
-                time: Math.floor(new Date(item.timestamp).getTime() / 1000),
-                open: parseFloat(item.open),
-                high: parseFloat(item.high),
-                low: parseFloat(item.low),
-                close: parseFloat(item.close)
-            }))
-            // Filter out rows containing NaN values from incomplete data fields
-            .filter(item =>
-                !isNaN(item.time) &&
-                !isNaN(item.open) &&
-                !isNaN(item.high) &&
-                !isNaN(item.low) &&
-                !isNaN(item.close)
-            )
-            // Sort chronologically from oldest to newest
-            .sort((a, b) => a.time - b.time)
-            // Deduplicate matching timestamps
-            .filter((item, index, self) => index === 0 || item.time > self[index - 1].time);
+        chartRef.current = chart;
+        seriesRef.current = series;
 
-
-        // If all records were filtered out due to errors, skip setting data
-        if (formattedData.length > 0) {
-            candlestickSeries.setData(formattedData);
-            chart.timeScale().fitContent();
-        } else {
-            console.warn("No valid data available to render the chart.");
-        }
-
-        return () => {
-            chart.remove();
+        // Handle auto-resize
+        const handleResize = () => {
+            if (chartContainerRef.current) {
+                chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+            }
         };
-    }, [candle]);
+        window.addEventListener("resize", handleResize);
 
+        // CLEANUP: Destroy chart on unmount / re-render
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            chart.remove();
+            chartRef.current = null;
+            seriesRef.current = null;
+        };
+    }, []);
+
+    // Populate chart whenever history changes
+    useEffect(() => {
+        if (!seriesRef.current || candles.length === 0) return;
+
+        const formatted = candles
+            .map(item => ({
+                time: Math.floor(new Date(item.timestamp).getTime() / 1000),
+                open: Number(item.open),
+                high: Number(item.high),
+                low: Number(item.low),
+                close: Number(item.close),
+            }))
+            .filter(c =>
+                !isNaN(c.time) &&
+                !isNaN(c.open) &&
+                !isNaN(c.high) &&
+                !isNaN(c.low) &&
+                !isNaN(c.close)
+            )
+            .sort((a, b) => a.time - b.time);
+
+        candlesRef.current = formatted;
+        seriesRef.current.setData(formatted);
+        chartRef.current.timeScale().fitContent();
+    }, [candles]);
+
+    function updateCurrentCandle(price) {
+        if (!seriesRef.current) return;
+
+        const data = candlesRef.current;
+        if (data.length === 0) return;
+
+        // Note: mutating objects in place can lead to state tracking issues;
+        // consider spreading last candle if you encounter edge-case rendering bugs:
+        const last = { ...data[data.length - 1] };
+
+        last.high = Math.max(last.high, price);
+        last.low = Math.min(last.low, price);
+        last.close = price;
+
+        data[data.length - 1] = last;
+        seriesRef.current.update(last);
+    }
+
+    // Live price updates
+    useEffect(() => {
+        const eventSource = new EventSource(`${baseUrl}/stream/prices`);
+
+        eventSource.onmessage = event => {
+            const prices = JSON.parse(event.data);
+
+            const company = prices.find(
+                p => Number(p.companyId) === Number(companyId)
+            );
+
+            if (company) {
+                updateCurrentCandle(Number(company.currentPrice));
+            }
+        };
+
+        return () => eventSource.close();
+    }, [baseUrl, companyId]);
 
     return (
-        <>
-            <div ref={chartContainerRef}
-                 style={{ width: '100%', height: '400px', position: 'relative' }}
-            >
-
-            </div>
-        </>
-    )
+        <div
+            ref={chartContainerRef}
+            style={{
+                width: "100%",
+                height: "400px",
+                position: "relative",
+            }}
+        />
+    );
 }
+
 export default CompanyPage;
