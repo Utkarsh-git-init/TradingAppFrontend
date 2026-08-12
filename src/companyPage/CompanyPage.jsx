@@ -1,8 +1,11 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { createChart, CandlestickSeries } from "lightweight-charts";
+import {useTheme} from "../context/theme/ThemeProvider.jsx";
 
 function CompanyPage() {
+    const {theme} = useTheme()
+
     const { companyId } = useParams();
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,7 +15,6 @@ function CompanyPage() {
     const chartRef = useRef(null);
     const seriesRef = useRef(null);
     const candlesRef = useRef([]);
-
     // Fetch history
     useEffect(() => {
         fetch(`${baseUrl}/company/price_history/${companyId}`)
@@ -30,10 +32,6 @@ function CompanyPage() {
         const chart = createChart(chartContainerRef.current, {
             width: chartContainerRef.current.clientWidth || 800,
             height: 400,
-            layout: {
-                background: { color: "#ffffff" },
-                textColor: "#333",
-            },
             timeScale: {
                 timeVisible: true,
                 secondsVisible: false,
@@ -65,13 +63,30 @@ function CompanyPage() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!chartRef.current) return;
+
+        const isDark = theme === "dark";
+
+        chartRef.current.applyOptions({
+            layout: {
+                background: { color: isDark ? "#000000" : "#ffffff" },
+                textColor: isDark ? "#d1d5db" : "#333333",
+            },
+            grid: {
+                vertLines: { color: isDark ? "#1f2937" : "#f0f3fa" },
+                horzLines: { color: isDark ? "#1f2937" : "#f0f3fa" },
+            },
+        });
+    }, [theme]);
+
     // Populate chart whenever history changes
     useEffect(() => {
         if (!seriesRef.current || candles.length === 0) return;
-
+        const IST_OFFSET_SECONDS = 5.5 * 60 * 60; // 19800 seconds
         const formatted = candles
             .map(item => ({
-                time: Math.floor(new Date(item.timestamp).getTime() / 1000),
+                time: Math.floor(new Date(item.timestamp).getTime() / 1000) + IST_OFFSET_SECONDS,
                 open: Number(item.open),
                 high: Number(item.high),
                 low: Number(item.low),

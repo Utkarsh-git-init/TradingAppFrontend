@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 
 function Homepage() {
     const [companies, setCompanies] = useState([]);
@@ -32,25 +33,52 @@ function Homepage() {
 
 
     return (
-        <div>
+        <div className="min-h-screen
+        pr-2 pl-2
+        md:pr-4 md:pl:4 lg:pr-10 lg:pl-10
+        ">
+            <div className="grid grid-cols-[1fr_4fr_4fr_2fr] p-1 lg:p-2">
+                <div >
+                    <span>#</span>
+                </div>
+                <div>
+                    <span>Name</span>
+                </div>
+                <div>
+                    <span>Sector</span>
+                </div>
+                <div>
+                    <span>Price</span>
+                </div>
+            </div>
+            <hr className={"border-t-gray-500"}/>
             <div>
                 {
                     companies.map((company) => {
                         const matchedItem=livePrices.find((live) => live?.companyId=== company.id);
                         return (
                             <div key={company.id}>
-                                {company.id}---
-                                {company.name}   ---
-                                {company.fairPrice} ---
-                                {company.sector} ---
-                                {company.volatility} ---
-                                ----
-                                {matchedItem?.companyId}
-                                ----
-                                livePrices
-                                ----
-                                {matchedItem?.currentPrice}
+                                <div className="grid grid-cols-[1fr_4fr_4fr_2fr]
+                                p-1 lg:p-2">
+                                    <div >
+                                        <span>{company.id}</span>
+                                    </div>
+                                    <div>
+                                        <Link to={`/company/${company.id}`}>
+                                            <span>{company.name}</span>
+                                        </Link>
+
+                                    </div>
+                                    <div>
+                                        <span>{company.sector}</span>
+                                    </div>
+                                    <div>
+                                        <span>{matchedItem?.currentPrice}</span>
+                                    </div>
+                                </div>
+                                <hr className={"border-t-gray-500"}/>
                             </div>
+
                         )
                     })
                 }

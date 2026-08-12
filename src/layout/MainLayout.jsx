@@ -1,25 +1,14 @@
 import {Outlet} from "react-router-dom";
-import {useEffect, useState} from "react";
+import Header from "./Header/Header.jsx";
 
-function MainPage() {
-    const [theme, setTheme] = useState("light");
-    useEffect(() => {
-        document.documentElement.setAttribute("data-theme", theme);
-    }, [theme]);
+function MainLayout() {
+
+
     return (
-        <>
-            <div>
-                <button
-                    onClick={() =>
-                        setTheme(theme === "light" ? "dark" : "light")
-                    }
-                >
-                    Toggle Theme
-                </button>
-            </div>
-            heloo this is layout
-            <Outlet/>
-        </>
-    )
+        <div>
+            <Header />
+            <Outlet />
+        </div>
+    );
 }
-export default MainPage;
+export default MainLayout;
