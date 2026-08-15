@@ -14,14 +14,24 @@ function Homepage() {
             setCompanies(data);
         })
     }, [baseUrl]);
-    const [livePrices, setLivePrices] = useState([]);
+
+    const [priceData, setPriceData] = useState({
+        current: new Map(),
+        previous: new Map()
+    });
+
     useEffect(() => {
         const eventSource=new EventSource(
             baseUrl+'/stream/prices',
         )
         eventSource.onmessage=(event)=>{
             const prices=JSON.parse(event.data);
-            setLivePrices(prices);
+            setPriceData(prev => ({
+                previous: prev.current,
+                current: new Map(
+                    prices.map(p => [p.companyId, p.currentPrice])
+                )
+            }));
         }
         eventSource.onerror=(event)=>{
             console.error(event)
@@ -55,7 +65,8 @@ function Homepage() {
             <div>
                 {
                     companies.map((company) => {
-                        const matchedItem=livePrices.find((live) => live?.companyId=== company.id);
+                        const currentPrice = priceData.current.get(company.id);
+                        const previousPrice = priceData.previous.get(company.id);
                         return (
                             <div key={company.id}>
                                 <div className="grid grid-cols-[1fr_4fr_4fr_2fr]
@@ -73,7 +84,9 @@ function Homepage() {
                                         <span>{company.sector}</span>
                                     </div>
                                     <div>
-                                        <span>{matchedItem?.currentPrice}</span>
+                                        <span className={currentPrice > previousPrice ? "text-[#00C853]"
+                                            : currentPrice < previousPrice ? "text-[#FF1744]"
+                                                : "dark:text-white"}>{currentPrice}</span>
                                     </div>
                                 </div>
                                 <hr className={"border-t-gray-500"}/>
