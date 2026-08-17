@@ -158,7 +158,7 @@ function Graph() {
                             intervals.map(item => {
                                 const isActive=interval===item;
                                 return (
-                                    <button key={item.id}
+                                    <button key={item}
                                             className={`rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
                                                 isActive
                                                     ? "bg-gray-300 dark:bg-white text-black shadow-sm"
