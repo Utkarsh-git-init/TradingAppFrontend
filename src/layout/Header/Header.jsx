@@ -1,4 +1,5 @@
 import ThemeToggle from "./ThemeToggle.jsx";
+import {Link} from "react-router-dom";
 
 function Header() {
 
@@ -8,7 +9,10 @@ function Header() {
         lg:pr-10 lg:pl-10
         ">
             <div>
-                <span className="text-2xl">TRADECURSE</span>
+                <Link to="/">
+                    <span className="text-2xl">TRADECURSE</span>
+                </Link>
+
             </div>
             <ThemeToggle/>
         </div>
