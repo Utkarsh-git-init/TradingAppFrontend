@@ -1,12 +1,10 @@
-import { useParams } from "react-router-dom";
 import {useEffect, useRef, useState} from "react";
 import { createChart, CandlestickSeries } from "lightweight-charts";
 import {useTheme} from "../../context/theme/ThemeProvider.jsx";
 
-function Graph() {
+function Graph({companySymbol,companyId}) {
     const {theme} = useTheme()
 
-    const { companyId } = useParams();
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
     const [interval, setInterval] = useState('1h');
@@ -148,12 +146,22 @@ function Graph() {
     }, [baseUrl, companyId]);
     return (
         <>
-            <div className="flex flex-col justify-center items-center">
-                <div className="w-19/20">
-                    <div
-                        ref={chartContainerRef}
-                    />
-                    <div className="flex flex-row p-2">
+            <div>
+                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Price Chart
+                        </h2>
+
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {companySymbol} price movement
+                        </p>
+                    </div>
+
+                    {/* Range Buttons */}
+
+                    <div className="flex w-fit overflow-x-auto rounded-lg border p-1 border-gray-200 dark:border-zinc-800">
                         {
                             intervals.map(item => {
                                 const isActive=interval===item;
@@ -173,8 +181,14 @@ function Graph() {
                         }
                     </div>
                 </div>
+
+                <div
+                    ref={chartContainerRef}
+                />
             </div>
         </>
     )
 }
 export default Graph;
+
+

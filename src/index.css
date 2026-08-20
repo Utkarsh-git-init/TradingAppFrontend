@@ -3,5 +3,5 @@
 
 html,
 body {
-    @apply dark:bg-zinc-900;
+    @apply dark:bg-zinc-950 bg-zinc-100;
 }

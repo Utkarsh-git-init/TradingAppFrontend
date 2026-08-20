@@ -5,10 +5,10 @@ function MainLayout() {
 
 
     return (
-        <div>
+        <>
             <Header />
             <Outlet />
-        </div>
+        </>
     );
 }
 export default MainLayout;
