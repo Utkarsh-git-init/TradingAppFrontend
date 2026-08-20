@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import { createChart, CandlestickSeries } from "lightweight-charts";
 import {useTheme} from "../../context/theme/ThemeProvider.jsx";
 
-function Graph({companySymbol,companyId}) {
+function Graph({companySymbol,companyId, currentPrice}) {
     const {theme} = useTheme()
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -128,22 +128,10 @@ function Graph({companySymbol,companyId}) {
 
     // Live price updates
     useEffect(() => {
-        const eventSource = new EventSource(`${baseUrl}/stream/prices`);
-
-        eventSource.onmessage = event => {
-            const prices = JSON.parse(event.data);
-
-            const company = prices.find(
-                p => Number(p.companyId) === Number(companyId)
-            );
-
-            if (company) {
-                updateCurrentCandle(Number(company.currentPrice));
-            }
-        };
-
-        return () => eventSource.close();
-    }, [baseUrl, companyId]);
+        if (currentPrice != null) {
+            updateCurrentCandle(Number(currentPrice));
+        }
+    }, [currentPrice]);
     return (
         <>
             <div>

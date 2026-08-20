@@ -6,6 +6,7 @@ import PriceRange from "./PriceRange.jsx";
 function CompanyPage() {
     const [company, setCompany] = useState(null);
     const { companyId } = useParams();
+    const [currentPrice, setCurrentPrice] = useState(null);
 
     useEffect(() => {
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -20,11 +21,38 @@ function CompanyPage() {
             })
             .then((data) => {
                 setCompany(data);
+                setCurrentPrice(data.currentPrice);
                 console.log(data);
             })
             .catch((error) => {
                 console.error(error);
             });
+    }, [companyId]);
+
+    useEffect(() => {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+        const eventSource = new EventSource(
+            `${baseUrl}/stream/prices`
+        );
+
+        eventSource.onmessage = (event) => {
+            const prices = JSON.parse(event.data);
+
+            const updatedCompany = prices.find(
+                p => Number(p.companyId) === Number(companyId)
+            );
+
+            if (updatedCompany) {
+                setCurrentPrice(
+                    Number(updatedCompany.currentPrice)
+                );
+            }
+        };
+
+        return () => {
+            eventSource.close();
+        };
     }, [companyId]);
 
     if (!company) {
@@ -109,7 +137,9 @@ function CompanyPage() {
                         </p>
 
                         <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
-                            {formatCurrency(company.currentPrice)}
+                            {formatCurrency(
+                                currentPrice ?? company.currentPrice
+                            )}
                         </p>
 
                         <p
@@ -134,7 +164,11 @@ function CompanyPage() {
 
             <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
                 <div className="h-[520px] w-full">
-                    <Graph  companySymbol={company.symbol} companyId={company.id} />
+                    <Graph
+                        companySymbol={company.symbol}
+                        companyId={company.id}
+                        currentPrice={currentPrice}
+                    />
                 </div>
             </div>
 
