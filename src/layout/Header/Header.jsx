@@ -1,7 +1,8 @@
 import ThemeToggle from "./ThemeToggle.jsx";
 import {Link} from "react-router-dom";
-import {IoPersonOutline} from "react-icons/io5";
 import {useAuth} from "../../context/auth/UseAuth.jsx";
+import { IoLogInOutline } from "react-icons/io5";
+import { MdAccountCircle } from "react-icons/md";
 
 function Header() {
     const {user}= useAuth()
@@ -35,7 +36,12 @@ function Header() {
                 <ThemeToggle/>
                 <div>
                     <Link to={user ? "/dashboard" : "/login"}>
-                        <IoPersonOutline size={30}/>
+                        {
+                            user?
+                                <MdAccountCircle size={40}/>
+                                :
+                                <IoLogInOutline size={40}/>
+                        }
                     </Link>
                 </div>
             </div>

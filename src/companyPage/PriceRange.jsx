@@ -19,7 +19,7 @@ function PriceRange({ label, range, currentPrice, currency }) {
     };
 
     return (
-        <div className="rounded-xl bg-gray-50 p-4 dark:bg-zinc-800/60">
+        <div className="rounded-xl bg-gray-50 p-4 dark:bg-zinc-800/40">
 
             {/* Range Title */}
             <div className="mb-6 flex items-center justify-between">

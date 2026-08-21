@@ -70,14 +70,12 @@ function Graph({companySymbol,companyId, currentPrice}) {
 
         chartRef.current.applyOptions({
             layout: {
-                background: { color: isDark ? "oklch(21% 0.006 285.885)" : "#ffffff" },
-                textColor: isDark ? "#ffffff" : "#333333",
+                background: { color: "transparent" },
+                textColor: isDark ? "#a1a1aa" : "#71717a",
             },
             grid: {
-                vertLines: { color: isDark ? "oklch(21% 0.006 285.885)" : "#ffffff"},
-                horzLines: { color: isDark ? "oklch(21% 0.006 285.885)" : "#ffffff" },
-                // vertLines: { color: isDark ? "#1f2937" : "#f0f3fa" },
-                // horzLines: { color: isDark ? "#1f2937" : "#f0f3fa" },
+                vertLines: { color: "transparent" },
+                horzLines: { color: "transparent" },
             },
         });
     }, [theme]);
